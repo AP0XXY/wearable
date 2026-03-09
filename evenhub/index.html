@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CounselView</title>
+    <style>
+      /* This UI shows on the PHONE (WebView), not the glasses.
+         The glasses display is controlled via the SDK bridge. */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        font-family: -apple-system, system-ui, sans-serif;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        padding: 16px;
+        min-height: 100vh;
+      }
+      h1 { font-size: 20px; color: #4ade80; margin-bottom: 8px; }
+      .status { font-size: 13px; color: #888; margin-bottom: 16px; }
+      .status.connected { color: #4ade80; }
+      .status.error { color: #f87171; }
+
+      .mode-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .mode-btn {
+        background: #1a1a2e;
+        border: 1px solid #333;
+        border-radius: 10px;
+        padding: 14px 10px;
+        color: #e0e0e0;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+      }
+      .mode-btn.active { border-color: #4ade80; background: #0d2818; }
+      .mode-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+
+      .section { margin-bottom: 16px; }
+      .section h2 { font-size: 15px; color: #aaa; margin-bottom: 8px; }
+
+      textarea, input[type="text"] {
+        width: 100%;
+        background: #1a1a2e;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 10px;
+        color: #e0e0e0;
+        font-size: 14px;
+        resize: vertical;
+      }
+      textarea { min-height: 80px; }
+
+      .btn {
+        display: inline-block;
+        background: #4ade80;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        margin-right: 6px;
+      }
+      .btn.secondary { background: #333; color: #e0e0e0; }
+      .btn.danger { background: #f87171; }
+
+      .question-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .question-nav .btn { flex: 1; text-align: center; }
+      .question-counter { color: #4ade80; font-weight: 600; min-width: 60px; text-align: center; }
+
+      .log {
+        background: #111;
+        border-radius: 8px;
+        padding: 10px;
+        font-family: 'SF Mono', monospace;
+        font-size: 12px;
+        color: #4ade80;
+        max-height: 200px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+
+      .case-info {
+        background: #1a1a2e;
+        border-radius: 8px;
+        padding: 10px;
+        font-size: 13px;
+        color: #aaa;
+      }
+      .case-info strong { color: #e0e0e0; }
+    </style>
+  </head>
+  <body>
+    <h1>CounselView</h1>
+    <div id="status" class="status">Connecting to glasses...</div>
+
+    <!-- Mode Selection -->
+    <div class="mode-grid">
+      <div class="mode-btn active" data-mode="examination" id="mode-examination">
+        <span class="icon">Q</span>Examination
+      </div>
+      <div class="mode-btn" data-mode="objection" id="mode-objection">
+        <span class="icon">!</span>Objection
+      </div>
+      <div class="mode-btn" data-mode="research" id="mode-research">
+        <span class="icon">S</span>Research
+      </div>
+      <div class="mode-btn" data-mode="deposition" id="mode-deposition">
+        <span class="icon">D</span>Deposition
+      </div>
+    </div>
+
+    <!-- Case Info -->
+    <div id="case-section" class="section">
+      <h2>Case</h2>
+      <div id="case-info" class="case-info">No case loaded. Paste case JSON below.</div>
+    </div>
+
+    <!-- Examination Mode -->
+    <div id="exam-panel" class="section">
+      <h2>Question Queue</h2>
+      <textarea id="questions-input" placeholder="Enter questions, one per line...
+e.g.:
+Can you state your full name for the record?
+Where were you on the evening of March 15?
+Did you observe the defendant?"></textarea>
+      <button class="btn" id="load-questions">Load Questions</button>
+      <div class="question-nav" id="question-nav" style="display:none;">
+        <button class="btn secondary" id="prev-q">Prev</button>
+        <span class="question-counter" id="q-counter">0/0</span>
+        <button class="btn" id="next-q">Next</button>
+      </div>
+    </div>
+
+    <!-- Research / Search -->
+    <div id="research-panel" class="section" style="display:none;">
+      <h2>Legal Search</h2>
+      <input type="text" id="search-input" placeholder="e.g. hearsay exceptions, FRE 803..." />
+      <button class="btn" id="search-btn">Search</button>
+      <button class="btn secondary" id="mic-btn">Voice Search</button>
+    </div>
+
+    <!-- Objection Panel -->
+    <div id="objection-panel" class="section" style="display:none;">
+      <h2>Objection Copilot</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:8px;">
+        Listening via mic. Tap temple to flag objection, or type below.
+      </p>
+      <input type="text" id="objection-input" placeholder="Paste opposing counsel's question..." />
+      <button class="btn danger" id="objection-btn">Analyze</button>
+    </div>
+
+    <!-- Deposition Panel -->
+    <div id="deposition-panel" class="section" style="display:none;">
+      <h2>Deposition Mode</h2>
+      <textarea id="depo-transcript" placeholder="Paste prior deposition excerpts..."></textarea>
+      <button class="btn" id="load-depo">Load Transcript</button>
+      <input type="text" id="depo-search" placeholder="Check contradiction..." style="margin-top:8px;" />
+      <button class="btn secondary" id="depo-check">Check</button>
+    </div>
+
+    <!-- Case Loader -->
+    <div class="section">
+      <h2>Load Case Data (JSON)</h2>
+      <textarea id="case-json" placeholder='Paste case JSON here...' style="min-height:60px;font-size:12px;"></textarea>
+      <button class="btn secondary" id="load-case">Load Case</button>
+    </div>
+
+    <!-- Activity Log -->
+    <div class="section">
+      <h2>Display Log</h2>
+      <div id="log" class="log">Ready.\n</div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>CounselView — Notify</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 16px;
+      min-height: 100vh;
+      -webkit-text-size-adjust: 100%;
+    }
+    h1 { font-size: 22px; color: #4ade80; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+    .status { padding: 8px 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+    .status.ok { background: #0d2818; color: #4ade80; border: 1px solid #166534; }
+    .status.warn { background: #2d1b00; color: #fbbf24; border: 1px solid #92400e; }
+    .status.err { background: #2d0000; color: #f87171; border: 1px solid #991b1b; }
+
+    .section { margin-bottom: 20px; }
+    .section h2 { font-size: 15px; color: #888; margin-bottom: 8px; }
+
+    input, textarea {
+      width: 100%; background: #1a1a2e; border: 1px solid #333;
+      border-radius: 8px; padding: 10px; color: #e0e0e0; font-size: 15px;
+    }
+    textarea { min-height: 60px; resize: vertical; }
+
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .btn {
+      flex: 1; min-width: 100px; padding: 12px 16px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer; text-align: center;
+    }
+    .btn-green { background: #4ade80; color: #000; }
+    .btn-red { background: #f87171; color: #000; }
+    .btn-blue { background: #60a5fa; color: #000; }
+    .btn-gray { background: #333; color: #e0e0e0; }
+
+    .quick-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .quick-btn {
+      background: #1a1a2e; border: 1px solid #333; border-radius: 10px;
+      padding: 12px 8px; color: #e0e0e0; font-size: 13px; cursor: pointer;
+      text-align: center;
+    }
+    .quick-btn:active { background: #333; }
+    .quick-btn .label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 2px; }
+
+    .log {
+      background: #111; border-radius: 8px; padding: 10px;
+      font-family: 'SF Mono', monospace; font-size: 11px; color: #4ade80;
+      max-height: 150px; overflow-y: auto; white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>CounselView</h1>
+  <p class="subtitle">Notifications push to your G2 lenses</p>
+
+  <div id="status" class="status warn">Tap "Enable Notifications" to start</div>
+
+  <div class="section">
+    <div class="btn-row">
+      <button class="btn btn-green" id="enable-btn">Enable Notifications</button>
+      <button class="btn btn-gray" id="test-btn">Test</button>
+    </div>
+  </div>
+
+  <!-- Objection Quick Buttons -->
+  <div class="section">
+    <h2>Quick Objections — tap to push to glasses</h2>
+    <div class="quick-btns">
+      <button class="quick-btn" data-obj="OBJECTION: Hearsay|FRE 802|Out-of-court statement offered for truth">
+        <span class="label">Hearsay</span>FRE 802
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Leading|FRE 611(c)|Question suggests the answer">
+        <span class="label">Leading</span>FRE 611(c)
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Relevance|FRE 401-402|Not relevant to any issue in dispute">
+        <span class="label">Relevance</span>FRE 401
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Speculation|FRE 602|Witness lacks personal knowledge">
+        <span class="label">Speculation</span>FRE 602
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Compound|FRE 611(a)|Multiple questions asked at once">
+        <span class="label">Compound</span>FRE 611(a)
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Foundation|FRE 602/901|No foundation laid for testimony/exhibit">
+        <span class="label">Foundation</span>FRE 602/901
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Argumentative|FRE 611(a)|Counsel is arguing, not questioning">
+        <span class="label">Argumentative</span>FRE 611(a)
+      </button>
+      <button class="quick-btn" data-obj="OBJECTION: Asked & Answered|FRE 611(a)|Question already addressed">
+        <span class="label">Asked & Ans.</span>FRE 611(a)
+      </button>
+    </div>
+  </div>
+
+  <!-- AI-Powered Analysis -->
+  <div class="section">
+    <h2>AI Objection Check</h2>
+    <textarea id="question-input" placeholder="Paste opposing counsel's question..."></textarea>
+    <div class="btn-row">
+      <button class="btn btn-red" id="analyze-btn">Analyze & Push</button>
+    </div>
+  </div>
+
+  <!-- Legal Search -->
+  <div class="section">
+    <h2>Legal Search → Push to Glasses</h2>
+    <input type="text" id="search-input" placeholder="e.g. hearsay exceptions, FRE 803..." />
+    <div class="btn-row">
+      <button class="btn btn-blue" id="search-btn">Search & Push</button>
+    </div>
+  </div>
+
+  <!-- Custom Notification -->
+  <div class="section">
+    <h2>Custom Push</h2>
+    <input type="text" id="custom-title" placeholder="Title (e.g. IMPEACH)" />
+    <textarea id="custom-body" placeholder="Body text to show on lenses..." style="margin-top:6px;min-height:40px;"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-gray" id="custom-btn">Push to Glasses</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Log</h2>
+    <div id="log" class="log">Ready.\n</div>
+  </div>
+
+  <script>
+    const API_BASE = localStorage.getItem('counselview_api') || 'http://localhost:3001';
+    const logEl = document.getElementById('log');
+    const statusEl = document.getElementById('status');
+
+    function log(msg) {
+      const t = new Date().toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      logEl.textContent += `[${t}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // --- Notification permission ---
+    document.getElementById('enable-btn').addEventListener('click', async () => {
+      if (!('Notification' in window)) {
+        statusEl.textContent = 'Notifications not supported in this browser';
+        statusEl.className = 'status err';
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') {
+        statusEl.textContent = 'Notifications enabled — pushes will show on G2';
+        statusEl.className = 'status ok';
+        log('Notifications enabled');
+      } else {
+        statusEl.textContent = 'Notification permission denied';
+        statusEl.className = 'status err';
+        log('Permission denied');
+      }
+    });
+
+    // --- Push notification to glasses ---
+    function pushToGlasses(title, body) {
+      if (Notification.permission !== 'granted') {
+        log('ERROR: Enable notifications first');
+        return;
+      }
+      // This fires a system notification → Even app mirrors it → shows on G2 lenses
+      const n = new Notification(title, {
+        body: body,
+        icon: '⚖️',
+        tag: 'counselview-' + Date.now(), // unique tag so they don't collapse
+        requireInteraction: false,
+      });
+      log(`Pushed: ${title} — ${body.split('\n')[0]}`);
+      // Auto-close after 8 seconds
+      setTimeout(() => n.close(), 8000);
+    }
+
+    // --- Test notification ---
+    document.getElementById('test-btn').addEventListener('click', () => {
+      pushToGlasses('CounselView', 'Test notification.\nIf you see this on your G2,\nnotifications are working!');
+    });
+
+    // --- Quick objection buttons ---
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const parts = btn.dataset.obj.split('|');
+        pushToGlasses(parts[0], `${parts[1]}\n${parts[2]}`);
+      });
+    });
+
+    // --- AI objection analysis ---
+    document.getElementById('analyze-btn').addEventListener('click', async () => {
+      const question = document.getElementById('question-input').value.trim();
+      if (!question) return;
+
+      log('Analyzing objection...');
+      try {
+        const res = await fetch(`${API_BASE}/api/objection`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        });
+        const data = await res.json();
+        pushToGlasses('OBJECTION CHECK', data.text);
+      } catch (err) {
+        log(`API error: ${err.message}`);
+        pushToGlasses('ERROR', 'Server unreachable.\nCheck connection.');
+      }
+    });
+
+    // --- Legal search ---
+    document.getElementById('search-btn').addEventListener('click', async () => {
+      const query = document.getElementById('search-input').value.trim();
+      if (!query) return;
+
+      log(`Searching: "${query}"`);
+      try {
+        const res = await fetch(`${API_BASE}/api/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query }),
+        });
+        const data = await res.json();
+        pushToGlasses('LEGAL SEARCH', data.text);
+      } catch (err) {
+        log(`API error: ${err.message}`);
+        pushToGlasses('ERROR', 'Server unreachable.');
+      }
+    });
+
+    // --- Custom push ---
+    document.getElementById('custom-btn').addEventListener('click', () => {
+      const title = document.getElementById('custom-title').value.trim() || 'CounselView';
+      const body = document.getElementById('custom-body').value.trim();
+      if (!body) return;
+      pushToGlasses(title, body);
+    });
+
+    // --- API base config ---
+    log(`API: ${API_BASE}`);
+    log('Tip: open Settings > Even Realities > Notifications to ensure mirroring is ON');
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "counselview",
+  "version": "0.1.0",
+  "description": "AR litigation assistant for Even Realities glasses via MentraOS",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "load-case": "bun run src/tools/load-case.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.50.0",
+    "@mentra/sdk": "^1.1.19"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "case_name": "Smith v. Acme Corp",
+  "case_number": "2026-CV-1234",
+  "deposition_excerpts": {
+    "John Doe": [
+      "Dep. p.12:5-8: 'I was not present at the facility on March 15.'",
+      "Dep. p.23:14-17: 'I have never spoken with the defendant about the contract.'",
+      "Dep. p.47:12-15: 'The document was signed by someone else, not me.'"
+    ],
+    "Jane Roe": [
+      "Dep. p.8:1-4: 'I saw Mr. Doe at the facility that evening.'",
+      "Dep. p.15:20-23: 'The meeting lasted approximately 30 minutes.'",
+      "Dep. p.31:7-10: 'I recall the defendant handing a document to Mr. Doe.'"
+    ]
+  },
+  "exhibits": {
+    "1": "Contract dated March 10, 2025 between Smith and Acme Corp",
+    "2": "Email from Doe to Roe, March 14, 2025, re: 'Meeting tomorrow'",
+    "3": "Security camera footage log, March 15, 2025, 6:00-10:00 PM",
+    "4": "Signed acknowledgment form with disputed signature",
+    "5": "Expert report on handwriting analysis by Dr. Wilson"
+  },
+  "key_statutes": [
+    "28 U.S.C. § 1332 - Diversity jurisdiction",
+    "UCC § 2-201 - Statute of Frauds",
+    "FRE 801(d)(1) - Prior inconsistent statement",
+    "FRE 901(b)(2) - Authentication by comparison",
+    "FRE 702 - Expert testimony"
+  ],
+  "opposing_arguments": [
+    "Contract was never properly executed",
+    "Signature on Exhibit 4 is forged",
+    "Plaintiff lacks standing due to assignment clause"
+  ],
+  "jury_instructions": [
+    "Breach of contract: (1) valid contract, (2) performance by plaintiff, (3) breach by defendant, (4) damages",
+    "Burden of proof: preponderance of the evidence",
+    "Credibility: jurors are sole judges of witness credibility"
+  ]
+}
